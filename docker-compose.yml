@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: opusfrota-db
+    restart: always
+    environment:
+        POSTGRES_USER: opusfrota
+        POSTGRES_PASSWORD: opusfrota123
+        POSTGRES_DB: opusfrota_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - opusfrota_data:/var/lib/postgres/data
+
+volumes:
+  opusfrota_data:
+  
