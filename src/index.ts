@@ -1,11 +1,14 @@
-import Express = require("express");
+import Express from "express";
+import 'dotenv/config';
+import authRoutes from "./routes/auth.routes.ts";
+import vehicleRoutes from './routes/vehicle.routes.ts'
 
 const app = Express();
 const port = 3000;
 
-app.get('/', (req, res) => {
-    res.json({message: 'Hello World! OpusFrota API is running!'})
-})
+app.use(Express.json())
+app.use(authRoutes)
+app.use(vehicleRoutes)
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`)
