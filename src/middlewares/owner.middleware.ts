@@ -1,30 +1,30 @@
-import type {NextFunction, Request, Response} from 'express'
-import { db } from '../db/client.ts'
-import { userTable } from '../db/schema/user.ts'
-import { eq } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from "express";
+import { getUserService } from "../services/auth.service.ts";
+
 
 
 const requireOwner = async (req: Request, res: Response, next: NextFunction) => {
 
-    const userId = req.userId
+    try {
 
-    if(!userId) {
-        return res.status(401).json({error: "UserId missing"})
+        const userId = req.userId
+
+        if(!userId) {
+            throw new Error("UserId missing on middleware")
+        }
+
+        const user = await getUserService({userId})
+
+        if(user?.role !== 'owner') {
+            throw new Error
+        }
+
+        next()
+
+    } catch (error) {
+        res.status(400).json({error: 'User unauthorized'})
     }
-
-    const [user] = await db.select().from(userTable).where(eq(userTable.id, userId))
-
-    if(!user) {
-        return res.status(404).json({error: 'User not found!'})
-    }
-
-    if(user?.role !== 'owner') {
-        return res.status(403).json({error: 'User not authorized!'})
-    }
-
-    next()
 
 }
 
-export {requireOwner}
-
+export default requireOwner

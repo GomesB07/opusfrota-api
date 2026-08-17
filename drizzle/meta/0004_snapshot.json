@@ -1,6 +1,6 @@
 {
-  "id": "4c857f6d-a31d-4cba-aa91-a9777d5efefd",
-  "prevId": "e57c2038-1a7e-4d96-881f-ee4ceece8f45",
+  "id": "58417bb6-cf6e-4a75-84c2-bd9257a9d1ea",
+  "prevId": "e573b238-6719-4cf3-a233-57375b17d895",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -38,8 +38,14 @@
           "type": "user_role",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "'collaborator'"
+        },
+        "fleet_id": {
+          "name": "fleet_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -56,7 +62,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "users_fleet_id_fleet_id_fk": {
+          "name": "users_fleet_id_fleet_id_fk",
+          "tableFrom": "users",
+          "tableTo": "fleet",
+          "columnsFrom": [
+            "fleet_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "users_email_unique": {
@@ -102,7 +122,7 @@
         },
         "year": {
           "name": "year",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         },
@@ -126,8 +146,8 @@
           "notNull": false,
           "default": "'active'"
         },
-        "owner_id": {
-          "name": "owner_id",
+        "fleet_id": {
+          "name": "fleet_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -148,17 +168,17 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "vehicles_owner_id_users_id_fk": {
-          "name": "vehicles_owner_id_users_id_fk",
+        "vehicles_fleet_id_fleet_id_fk": {
+          "name": "vehicles_fleet_id_fleet_id_fk",
           "tableFrom": "vehicles",
-          "tableTo": "users",
+          "tableTo": "fleet",
           "columnsFrom": [
-            "owner_id"
+            "fleet_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -172,6 +192,145 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.fleet": {
+      "name": "fleet",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fleet_owner_id_users_id_fk": {
+          "name": "fleet_owner_id_users_id_fk",
+          "tableFrom": "fleet",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.fleetInvite": {
+      "name": "fleetInvite",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "fleet_id": {
+          "name": "fleet_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "invite_user_id": {
+          "name": "invite_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "invite_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pending'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fleetInvite_fleet_id_fleet_id_fk": {
+          "name": "fleetInvite_fleet_id_fleet_id_fk",
+          "tableFrom": "fleetInvite",
+          "tableTo": "fleet",
+          "columnsFrom": [
+            "fleet_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "fleetInvite_invite_user_id_users_id_fk": {
+          "name": "fleetInvite_invite_user_id_users_id_fk",
+          "tableFrom": "fleetInvite",
+          "tableTo": "users",
+          "columnsFrom": [
+            "invite_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -193,6 +352,15 @@
         "active",
         "disabled",
         "maintenance"
+      ]
+    },
+    "public.invite_status": {
+      "name": "invite_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "accepted",
+        "rejected"
       ]
     }
   },
