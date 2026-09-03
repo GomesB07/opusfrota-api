@@ -1,6 +1,6 @@
 import * as z from 'zod'
 import type { Request, Response } from "express";
-import { getInvitesService, inviteFleetService } from "../services/inviteFleet.service.ts";
+import { acceptInviteService, getInvitesService, inviteFleetService } from "../services/inviteFleet.service.ts";
 
 const InvitedUserEmailValidate = z.object({
     email: z.email().nonempty()
@@ -50,4 +50,27 @@ const getInviteController = async (req: Request, res: Response) => {
     }
 }
 
-export {inviteFleetController, getInviteController}
+const acceptInviteController = async (req: Request, res: Response) => {
+
+    try {
+
+        const userId = req.userId
+        const {inviteId: invite} = req.params
+
+        if(!userId || !invite) {
+            throw new Error("Informations invalid")
+        }
+
+        const inviteId = invite?.toString()
+
+        const acceptedInvite = await acceptInviteService({userId, inviteId})
+
+        res.status(200).json({acceptedInvite})
+
+
+    } catch (error) {
+        res.status(400).json({error: (error as Error).message})
+    }
+}
+
+export {inviteFleetController, getInviteController, acceptInviteController}

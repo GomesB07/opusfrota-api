@@ -2,13 +2,15 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import {db} from '../db/client.js'
 import { userTable } from '../db/schema/user.js'
-import { eq, type ExtractTablesWithRelations } from 'drizzle-orm'
+import { eq, or, type ExtractTablesWithRelations } from 'drizzle-orm'
 import type { PgTransaction } from 'drizzle-orm/pg-core'
 import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js'
 
+const JWT_SECRET = process.env.JWT_SECRET!
+
 type UserRoleServiceType = {
     tx: PgTransaction<PostgresJsQueryResultHKT, typeof import("../db/index.ts"), ExtractTablesWithRelations<typeof import("../db/index.ts")>>,
-    userId: string,
+    userId: string
 }
 
 type UserRoleFleetIdServiceType = UserRoleServiceType & {
@@ -16,11 +18,10 @@ type UserRoleFleetIdServiceType = UserRoleServiceType & {
 }
 
 type getUserType = {
+    tx?: PgTransaction<PostgresJsQueryResultHKT, typeof import("../db/index.ts"), ExtractTablesWithRelations<typeof import("../db/index.ts")>>,
     userId?: string,
     userEmail?: string
 }
-
-const JWT_SECRET = process.env.JWT_SECRET!
 
 const registerService = async (data: {
     name: string,
@@ -56,23 +57,24 @@ const loginService = async (email: string, password: string) => {
     return {user, token}
 }
 
-const getUserService = async ({userId, userEmail}: getUserType) => {
+const getUserService = async ({tx, userId, userEmail}: getUserType) => {
 
-    if (userId) {
-        const user = await db.query.userTable.findFirst({
-            where: eq(userTable.id, userId)
-        })
+    const txOrDb = tx ? tx : db
 
-        return user
+    const conditions = []
+
+    if(userId) {
+        conditions.push(eq(userTable.id, userId))
     }
 
-    if (userEmail) {
-        const user = await db.query.userTable.findFirst({
-            where: eq(userTable.email, userEmail)
-        })
-
-        return user
+    if(userEmail) {
+        conditions.push(eq(userTable.email, userEmail))
     }
+
+    const [user] = await txOrDb.select().from(userTable).where(or(...conditions))
+
+    return user
+
 }
 
 const getUserRoleAndFleetIdService = async ({tx, userId}: UserRoleServiceType) => {
@@ -95,4 +97,11 @@ const updateUserRoleService = async ({tx, userId, fleetId}: UserRoleFleetIdServi
     return user
 }
 
-export {registerService, loginService, getUserService, getUserRoleAndFleetIdService, updateUserRoleService}
+const updateUserFleetIdService = async ({tx, userId, fleetId}: UserRoleFleetIdServiceType) => {
+
+    const user = tx.update(userTable).set({fleetId: fleetId}).where(eq(userTable.id, userId)).returning()
+
+    return user
+}
+
+export {registerService, loginService, getUserService, getUserRoleAndFleetIdService, updateUserRoleService, updateUserFleetIdService}

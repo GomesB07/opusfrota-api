@@ -31,8 +31,14 @@ const getAllVehiclesController = async (req: Request, res: Response) => {
 
     try {
         const userId = req.userId
+
+        if(!userId) {
+            throw new Error("User id missing")
+        }
         
         const vehicles = await getAllVehiclesService(userId)
+
+        console.log('VEHICLES CONTROLLER: ', vehicles)
 
         res.status(200).json(vehicles)
 

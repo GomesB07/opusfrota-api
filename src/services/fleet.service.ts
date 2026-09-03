@@ -3,6 +3,7 @@ import { fleetTable } from "../db/schema/fleet.ts"
 import type { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js"
 import { eq, type ExtractTablesWithRelations } from "drizzle-orm"
 import { db } from "../db/client.ts"
+import { getUserService } from "./auth.service.ts"
 
 type FleetRegisterServiceType = {
     tx: PgTransaction<PostgresJsQueryResultHKT, typeof import("../db/index.ts"), ExtractTablesWithRelations<typeof import("../db/index.ts")>>,
@@ -19,17 +20,31 @@ const fleetRegisterService = async ({tx, userId}: FleetRegisterServiceType) => {
     return fleet
 }
 
-const getFleetService = async (fleetId: string) => {
+const getFleetAndVehiclesService = async (userId: string) => {
 
-    const fleet = await db.query.fleetTable.findFirst({
-        where: eq(fleetTable.id, fleetId),
-        with: {
-            user: true,
-            vehicles: true
+    const fleet = await db.transaction(async (tx) => {
+        const user = await getUserService({tx, userId})
+
+        if(!user) {
+            throw new Error("User not found")
         }
+
+        if(user.fleetId === null) {
+            throw new Error("User does not have a fleet")
+        }
+
+        const fleet = await tx.query.fleetTable.findFirst({
+            where: eq(fleetTable.id, user.fleetId),
+            with: {
+                vehicles: true
+            }
+        })
+
+        return fleet
+
     })
 
     return fleet
 }
 
-export {fleetRegisterService, getFleetService}
+export {fleetRegisterService, getFleetAndVehiclesService}

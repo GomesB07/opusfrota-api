@@ -1,19 +1,19 @@
 import type { Request, Response } from "express"
-import { getFleetService } from "../services/fleet.service.ts"
+import { getFleetAndVehiclesService } from "../services/fleet.service.ts"
 
 
 
-const getFleetController = async (req: Request, res: Response) => {
+const getFleetAndVehiclesController = async (req: Request, res: Response) => {
 
     try {
 
-        const {fleetId} = req.params
+        const userId = req.userId
 
-        if(!fleetId) {
-            throw new Error("Fleet id not found")
+        if(!userId) {
+            throw new Error("User id not found")
         }
 
-        const fleet = await getFleetService(fleetId.toString())
+        const fleet = await getFleetAndVehiclesService(userId.toString())
 
         res.status(200).json(fleet)
 
@@ -23,4 +23,4 @@ const getFleetController = async (req: Request, res: Response) => {
 
 }
 
-export {getFleetController}
+export {getFleetAndVehiclesController}

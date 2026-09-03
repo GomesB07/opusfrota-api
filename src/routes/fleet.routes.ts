@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { requireAuth } from "../middlewares/auth.middleware.ts";
-import { getFleetController } from "../controllers/fleet.controller.ts";
+import { getFleetAndVehiclesController } from "../controllers/fleet.controller.ts";
 
 const router = Router()
 
-router.post('/fleet/get/:fleetId', requireAuth, getFleetController)
+router.get('/fleet-and-vehicles/get/', requireAuth, getFleetAndVehiclesController)
 
 export default router
